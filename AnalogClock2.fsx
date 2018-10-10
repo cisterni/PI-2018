@@ -1,6 +1,8 @@
 open System.Windows.Forms
 open System.Drawing
 
+let clockDiameter = 100.f
+
 let PI = System.Math.PI
 let deg2rad (a:single) =
   PI * float(a / 180.f) |> single
@@ -14,18 +16,57 @@ timer.Tick.Add(fun _ ->
 )
 timer.Start()
 
+type WVMatrix () =
+  let wv = new Drawing2D.Matrix()
+  let vw = new Drawing2D.Matrix()
+
+  member this.Translate (tx, ty) =
+    wv.Translate(tx, ty)
+    vw.Translate(-tx, -ty, Drawing2D.MatrixOrder.Append)
+
+  member this.Scale (sx, sy) =
+    wv.Scale(sx, sy)
+    vw.Scale(1.f /sx, 1.f/ sy, Drawing2D.MatrixOrder.Append)
+
+  member this.Rotate (a) =
+    wv.Rotate(a)
+    vw.Rotate(-a, Drawing2D.MatrixOrder.Append)
+
+  member this.VW with get() = vw
+  member this.WV with get() = wv
+
+let wv = WVMatrix()
+
+wv.Translate(100.f, 100.f)
+
+wv.Scale(1.f, -1.f)
+
+clock.KeyDown.Add(fun e ->
+  match e.KeyData with
+  | Keys.W -> wv.Translate(0.f, 10.f) // wv *= T(0,10)
+  | Keys.S -> wv.Translate(0.f, -10.f) // wv *= T(0,-10)
+  | Keys.A -> wv.Translate(-10.f, 0.f) // wv *= T(0,-10)
+  | Keys.D -> wv.Translate(10.f, 0.f) // wv *= T(0,-10)
+  | Keys.Q -> wv.Rotate(10.f)
+  | Keys.Z -> wv.Scale(1.1f, 1.1f)
+  | Keys.X -> wv.Scale(1.f/1.1f, 1.f/1.1f)
+  | _ -> ()
+  clock.Invalidate()
+)
+
 clock.Paint.Add(fun e ->
   let g = e.Graphics
-  let d = min clock.ClientSize.Width clock.ClientSize.Height
+  let d = clockDiameter
+
+  g.Transform <- wv.WV
+
   g.SmoothingMode <- Drawing2D.SmoothingMode.HighQuality
-  g.DrawEllipse(Pens.Gray, 0, 0, d, d)
   
-  let r = (single d) / 2.f
+  let r = d / 2.f
   let cx, cy = (r, r)
   let th = r / 10.f
 
-  g.TranslateTransform(cx, cy)
-  g.ScaleTransform(1.f, -1.f)
+  g.DrawEllipse(Pens.Gray, -cx, -cy, d, d)
 
   let drawlancet p a r1 r2 =
     let t = g.Transform
