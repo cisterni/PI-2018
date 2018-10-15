@@ -20,36 +20,77 @@ type WVMatrix () =
   let wv = new Drawing2D.Matrix()
   let vw = new Drawing2D.Matrix()
 
-  member this.Translate (tx, ty) =
+  member this.TranslateW (tx, ty) =
     wv.Translate(tx, ty)
     vw.Translate(-tx, -ty, Drawing2D.MatrixOrder.Append)
 
-  member this.Scale (sx, sy) =
+  member this.ScaleW (sx, sy) =
     wv.Scale(sx, sy)
     vw.Scale(1.f /sx, 1.f/ sy, Drawing2D.MatrixOrder.Append)
 
-  member this.Rotate (a) =
+  member this.RotateW (a) =
     wv.Rotate(a)
     vw.Rotate(-a, Drawing2D.MatrixOrder.Append)
+
+  member this.RotateV (a) =
+    vw.Rotate(a)
+    wv.Rotate(-a, Drawing2D.MatrixOrder.Append)
+
+  member this.TranslateV (tx, ty) =
+    vw.Translate(tx, ty)
+    wv.Translate(-tx, -ty, Drawing2D.MatrixOrder.Append)
+
+  member this.ScaleV (sx, sy) =
+    vw.Scale(sx, sy)
+    wv.Scale(1.f /sx, 1.f/ sy, Drawing2D.MatrixOrder.Append)
+  
+  member this.TransformPointV (p:PointF) =
+    let a = [| p |]
+    vw.TransformPoints(a)
+    a.[0]
+
+  member this.TransformPointW (p:PointF) =
+    let a = [| p |]
+    wv.TransformPoints(a)
+    a.[0]
 
   member this.VW with get() = vw
   member this.WV with get() = wv
 
 let wv = WVMatrix()
 
-wv.Translate(100.f, 100.f)
+wv.TranslateV(-50.f, -50.f)
 
-wv.Scale(1.f, -1.f)
+wv.ScaleW(1.f, -1.f)
 
 clock.KeyDown.Add(fun e ->
   match e.KeyData with
-  | Keys.W -> wv.Translate(0.f, 10.f) // wv *= T(0,10)
-  | Keys.S -> wv.Translate(0.f, -10.f) // wv *= T(0,-10)
-  | Keys.A -> wv.Translate(-10.f, 0.f) // wv *= T(0,-10)
-  | Keys.D -> wv.Translate(10.f, 0.f) // wv *= T(0,-10)
-  | Keys.Q -> wv.Rotate(10.f)
-  | Keys.Z -> wv.Scale(1.1f, 1.1f)
-  | Keys.X -> wv.Scale(1.f/1.1f, 1.f/1.1f)
+  | Keys.W -> wv.TranslateV(0.f, 10.f) // wv *= T(0,10)
+  | Keys.S -> wv.TranslateV(0.f, -10.f) // wv *= T(0,-10)
+  | Keys.A -> wv.TranslateV(-10.f, 0.f) // wv *= T(0,-10)
+  | Keys.D -> wv.TranslateV(10.f, 0.f) // wv *= T(0,-10)
+  | Keys.Q ->
+     let client = clock.ClientSize
+     wv.TranslateV(client.Width / 2 |> single, client.Height / 2 |> single)
+     wv.RotateV(10.f)
+     wv.TranslateV(-client.Width / 2 |> single, -client.Height / 2 |> single)
+  | Keys.E ->
+     let client = clock.ClientSize
+     wv.TranslateV(client.Width / 2 |> single, client.Height / 2 |> single)
+     wv.RotateV(-10.f)
+     wv.TranslateV(-client.Width / 2 |> single, -client.Height / 2 |> single)
+  | Keys.Z -> 
+    let cx, cy = clock.ClientSize.Width / 2 |> single, clock.ClientSize.Height / 2 |> single
+    let po = PointF(cx, cy) |> wv.TransformPointV
+    wv.ScaleV(1.1f, 1.1f)
+    let pn = PointF(cx, cy) |> wv.TransformPointV
+    wv.TranslateW(pn.X - po.X, pn.Y - po.Y)
+  | Keys.X ->
+    let cx, cy = clock.ClientSize.Width / 2 |> single, clock.ClientSize.Height / 2 |> single
+    let po = PointF(cx, cy) |> wv.TransformPointV
+    wv.ScaleV(1.f/1.1f, 1.f/1.1f)
+    let pn = PointF(cx, cy) |> wv.TransformPointV
+    wv.TranslateW(pn.X - po.X, pn.Y - po.Y)
   | _ -> ()
   clock.Invalidate()
 )
