@@ -10,12 +10,6 @@ let deg2rad (a:single) =
 let clock = new Form(Text="Clock",TopMost=true)
 clock.Show()
 
-let timer = new Timer(Interval=900)
-timer.Tick.Add(fun _ ->
-  clock.Invalidate()
-)
-timer.Start()
-
 type WVMatrix () =
   let wv = new Drawing2D.Matrix()
   let vw = new Drawing2D.Matrix()
@@ -57,24 +51,37 @@ type WVMatrix () =
   member this.VW with get() = vw
   member this.WV with get() = wv
 
-type AnalogClock () =
+type AnalogClock () as this =
   inherit UserControl()
   let wv = WVMatrix()
-  do 
-    wv.TranslateV(-50.f, -50.f)
+  
+  let mutable currentTime = new System.DateTime()
+  do
     wv.ScaleW(1.f, -1.f)
+  
+  member this.Time
+    with get() = currentTime
+    and set(v) = 
+      currentTime <- v
+      this.Invalidate()
 
-  override this.OnPaint e = 
+  override this.OnPaint e =
     let g = e.Graphics
-    let d = clockDiameter
+    let d = (min this.ClientSize.Width this.ClientSize.Height) |> single
 
     g.Transform <- wv.WV
 
     g.SmoothingMode <- Drawing2D.SmoothingMode.HighQuality
   
-    let r = d / 2.f
+    let r = d / 2.f - 1.f
     let cx, cy = (r, r)
     let th = r / 10.f
+
+    let cw = wv.TransformPointV(PointF(cx, cy))
+    wv.TranslateW(cw.X, cw.Y)
+    printfn "%A" cw 
+    printfn "%f %f" cx cy 
+    printfn "%A" (wv.TransformPointV(PointF(cx, cy)))
 
     g.DrawEllipse(Pens.Gray, -cx, -cy, d, d)
 
@@ -91,7 +98,7 @@ type AnalogClock () =
     use pm = new Pen(Color.Red, 2.f)
     use ps = new Pen(Color.Blue, 1.f)
 
-    let t = System.DateTime.Now
+    let t = currentTime
     let ah = single(t.Hour * 60 + t.Minute) / (12.f * 60.f ) * 360.f
     drawlancet ph ah -th (r / 2.f)
     let am = single(t.Minute) / 60.f * 360.f
@@ -104,7 +111,15 @@ type AnalogClock () =
     this.Invalidate()
     base.OnResize e
 
-let analog = new AnalogClock()
-clock.Controls.Add(analog)
+let rome = new AnalogClock()
+clock.Controls.Add(rome)
+let ny = new AnalogClock()
+clock.Controls.Add(ny)
+ny.Left <- rome.Width
 
-
+let t = new Timer(Interval=950)
+t.Tick.Add(fun _ ->
+  rome.Time <- System.DateTime.Now
+  ny.Time <- System.DateTime.Now - System.TimeSpan(6,0,0)
+)
+t.Start()
