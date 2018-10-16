@@ -69,8 +69,6 @@ type AnalogClock () as this =
     let g = e.Graphics
     let d = (min this.ClientSize.Width this.ClientSize.Height) |> single
 
-    g.Transform <- wv.WV
-
     g.SmoothingMode <- Drawing2D.SmoothingMode.HighQuality
   
     let r = d / 2.f - 1.f
@@ -79,6 +77,7 @@ type AnalogClock () as this =
 
     let cw = wv.TransformPointV(PointF(cx, cy))
     wv.TranslateW(cw.X, cw.Y)
+    g.Transform <- wv.WV
     printfn "%A" cw 
     printfn "%f %f" cx cy 
     printfn "%A" (wv.TransformPointV(PointF(cx, cy)))
