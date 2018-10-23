@@ -54,34 +54,39 @@ type WVMatrix () =
 type AnalogClock () as this =
   inherit UserControl()
   let wv = WVMatrix()
+  let mutable buf = new Bitmap(this.Width, this.Height)
   
   let mutable currentTime = new System.DateTime()
   do
     wv.ScaleW(1.f, -1.f)
   
+ 
   member this.Time
     with get() = currentTime
     and set(v) = 
       currentTime <- v
       this.Invalidate()
 
-  override this.OnPaint e =
-    let g = e.Graphics
-    let d = (min this.ClientSize.Width this.ClientSize.Height) |> single
+  override this.OnPaintBackground _ = ()
 
-    g.Transform <- wv.WV
+  override this.OnPaint e =
+    let g = Graphics.FromImage(buf)
+    //let g = e.Graphics
+    let d = (min this.ClientSize.Width this.ClientSize.Height) |> single
 
     g.SmoothingMode <- Drawing2D.SmoothingMode.HighQuality
   
+    use bg = new SolidBrush(this.BackColor)
+    g.FillRectangle(bg, 0, 0, buf.Width, buf.Height)
+
     let r = d / 2.f - 1.f
     let cx, cy = (r, r)
     let th = r / 10.f
 
     let cw = wv.TransformPointV(PointF(cx, cy))
     wv.TranslateW(cw.X, cw.Y)
-    printfn "%A" cw 
-    printfn "%f %f" cx cy 
-    printfn "%A" (wv.TransformPointV(PointF(cx, cy)))
+
+    g.Transform <- wv.WV
 
     g.DrawEllipse(Pens.Gray, -cx, -cy, d, d)
 
@@ -105,13 +110,79 @@ type AnalogClock () as this =
     drawlancet pm am -th (r * 0.75f)
     let asec = single(t.Second) / 60.f * 360.f
     drawlancet ps asec -th r
+    
+    e.Graphics.DrawImage(buf, 0, 0)
+
+    base.OnPaint e
+
+  override this.OnResize e =
+    buf.Dispose()
+    buf <- new Bitmap(this.Width, this.Height)
+    this.Invalidate()
+    base.OnResize e
+
+type AnalogClock2 () as this =
+  inherit UserControl()
+  let wv = WVMatrix()  
+  let mutable currentTime = new System.DateTime()
+  do
+    this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true)
+    wv.ScaleW(1.f, -1.f)
+  
+ 
+  member this.Time
+    with get() = currentTime
+    and set(v) = 
+      currentTime <- v
+      this.Invalidate()
+
+  //override this.OnPaintBackground _ = ()
+
+  override this.OnPaint e =
+    let g = e.Graphics
+    let d = (min this.ClientSize.Width this.ClientSize.Height) |> single
+
+    g.SmoothingMode <- Drawing2D.SmoothingMode.HighQuality
+  
+    let r = d / 2.f - 1.f
+    let cx, cy = (r, r)
+    let th = r / 10.f
+
+    let cw = wv.TransformPointV(PointF(cx, cy))
+    wv.TranslateW(cw.X, cw.Y)
+
+    g.Transform <- wv.WV
+
+    g.DrawEllipse(Pens.Gray, -cx, -cy, d, d)
+
+    let drawlancet p a r1 r2 =
+      let t = g.Transform
+      g.RotateTransform(-a)
+      g.DrawLine(p, 0.f, r1, 0.f, r2)
+      g.Transform <- t
+
+    for a in 0.f .. 30.f .. 360.f do
+      drawlancet Pens.Black a (r - th) r
+
+    use ph = new Pen(Color.Black, 4.f)
+    use pm = new Pen(Color.Red, 2.f)
+    use ps = new Pen(Color.Blue, 1.f)
+
+    let t = currentTime
+    let ah = single(t.Hour * 60 + t.Minute) / (12.f * 60.f ) * 360.f
+    drawlancet ph ah -th (r / 2.f)
+    let am = single(t.Minute) / 60.f * 360.f
+    drawlancet pm am -th (r * 0.75f)
+    let asec = single(t.Second) / 60.f * 360.f
+    drawlancet ps asec -th r
+    
     base.OnPaint e
 
   override this.OnResize e =
     this.Invalidate()
     base.OnResize e
 
-let rome = new AnalogClock()
+let rome = new AnalogClock2()
 clock.Controls.Add(rome)
 let ny = new AnalogClock()
 clock.Controls.Add(ny)
