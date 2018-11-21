@@ -1,0 +1,59 @@
+<html>
+<head>
+  <style>
+  body {
+  background: 0 -100px repeat-x url(https://mdn.mozillademos.org/files/5415/bg_gallery.png) #4F191A;
+  margin: 10px;
+}
+
+img {
+  display: none;
+}
+
+table {
+  margin: 0 auto;
+}
+
+td {
+  padding: 15px;
+}
+</style>
+<script>
+function draw() {
+
+  // Loop through all images
+  for (var i = 0; i < document.images.length; i++) {
+
+    // Don't add a canvas for the frame image
+    if (document.images[i].getAttribute('id') != 'frame') {
+
+      // Create canvas element
+      canvas = document.createElement('canvas');
+      canvas.setAttribute('width', 132);
+      canvas.setAttribute('height', 150);
+
+      // Insert before the image
+      document.images[i].parentNode.insertBefore(canvas,document.images[i]);
+
+      ctx = canvas.getContext('2d');
+
+      // Draw image to canvas
+      ctx.drawImage(document.images[i], 15, 20);
+
+      // Add frame
+      ctx.drawImage(document.getElementById('frame'), 0, 0);
+    }
+  }
+}
+</script>
+</head>
+ <body onload="draw();">
+     <table>
+      <tr>
+        <td><img src="img/gallery_1.jpg"></td>
+        <td><img src="img/gallery_2.jpg"></td>
+      </tr>
+     </table>
+     <img id="frame" src="img/Canvas_picture_frame.png" width="132" height="150">
+ </body>
+</html>

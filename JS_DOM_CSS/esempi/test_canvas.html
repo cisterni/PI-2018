@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>My JS+DOM+CSS experiment</title>
+    <script>
+
+    // show draw rect, clear rect, stroke
+    function draw1() {
+    var canvas = document.getElementById('canvas');
+    if (canvas.getContext) {
+      var ctx = canvas.getContext('2d');
+
+      ctx.fillRect(25, 25, 100, 100);
+      ctx.clearRect(45, 45, 60, 60);
+      ctx.strokeRect(50, 50, 50, 50);
+    }
+  }
+
+  // show paths, fill
+  function draw2() {
+  var canvas = document.getElementById('canvas');
+  if (canvas.getContext) {
+    var ctx = canvas.getContext('2d');
+
+    ctx.beginPath();
+    ctx.moveTo(75, 50);
+    ctx.lineTo(100, 75);
+    ctx.lineTo(100, 25);
+    ctx.fill();
+  }
+}
+
+// another path, arcs
+function draw3() {
+  var canvas = document.getElementById('canvas');
+  if (canvas.getContext) {
+     var ctx = canvas.getContext('2d');
+
+    ctx.beginPath();
+    ctx.arc(75, 75, 50, 0, Math.PI * 2, true); // Outer circle
+    ctx.moveTo(110, 75);
+    ctx.arc(75, 75, 35, 0, Math.PI, false);  // Mouth (clockwise)
+    ctx.moveTo(65, 65);
+    ctx.arc(60, 65, 5, 0, Math.PI * 2, true);  // Left eye
+    ctx.moveTo(95, 65);
+    ctx.arc(90, 65, 5, 0, Math.PI * 2, true);  // Right eye
+    ctx.stroke();
+  }
+}
+
+// bezier curves
+function draw4() {
+  var canvas = document.getElementById('canvas');
+  if (canvas.getContext) {
+    var ctx = canvas.getContext('2d');
+
+    // Quadratric curves example
+    ctx.beginPath();
+    ctx.moveTo(75, 25);
+    ctx.quadraticCurveTo(25, 25, 25, 62.5);
+    ctx.quadraticCurveTo(25, 100, 50, 100);
+    ctx.quadraticCurveTo(50, 120, 30, 125);
+    ctx.quadraticCurveTo(60, 120, 65, 100);
+    ctx.quadraticCurveTo(125, 100, 125, 62.5);
+    ctx.quadraticCurveTo(125, 25, 75, 25);
+    ctx.stroke();
+  }
+}
+
+// Path2D objects
+function draw5() {
+  var canvas = document.getElementById('canvas');
+  if (canvas.getContext) {
+    var ctx = canvas.getContext('2d');
+
+    var rectangle = new Path2D();
+    rectangle.rect(10, 10, 50, 50);
+
+    var circle = new Path2D();
+    circle.moveTo(125, 35);
+    circle.arc(100, 35, 25, 0, 2 * Math.PI);
+
+    ctx.stroke(rectangle);
+    ctx.fill(circle);
+  }
+}
+
+// colors
+function draw6() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+  for (var i = 0; i < 6; i++) {
+    for (var j = 0; j < 6; j++) {
+      ctx.fillStyle = 'rgb(' + Math.floor(255 - 42.5 * i) + ', ' +
+                       Math.floor(255 - 42.5 * j) + ', 0)';
+      ctx.fillRect(j * 25, i * 25, 25, 25);
+    }
+  }
+}
+
+// strokeStyle
+function draw7() {
+    var ctx = document.getElementById('canvas').getContext('2d');
+    for (var i = 0; i < 6; i++) {
+      for (var j = 0; j < 6; j++) {
+        ctx.strokeStyle = 'rgb(0, ' + Math.floor(255 - 42.5 * i) + ', ' +
+                         Math.floor(255 - 42.5 * j) + ')';
+        ctx.beginPath();
+        ctx.arc(12.5 + j * 25, 12.5 + i * 25, 10, 0, Math.PI * 2, true);
+        ctx.stroke();
+      }
+    }
+  }
+
+// transparency
+  function draw8() {
+    var ctx = document.getElementById('canvas').getContext('2d');
+    // draw background
+    ctx.fillStyle = '#FD0';
+    ctx.fillRect(0, 0, 75, 75);
+    ctx.fillStyle = '#6C0';
+    ctx.fillRect(75, 0, 75, 75);
+    ctx.fillStyle = '#09F';
+    ctx.fillRect(0, 75, 75, 75);
+    ctx.fillStyle = '#F30';
+    ctx.fillRect(75, 75, 75, 75);
+    ctx.fillStyle = '#FFF';
+
+    // set transparency value
+    ctx.globalAlpha = 0.2;
+
+    // Draw semi transparent circles
+    for (var i = 0; i < 7; i++) {
+      ctx.beginPath();
+      ctx.arc(75, 75, 10 + 10 * i, 0, Math.PI * 2, true);
+      ctx.fill();
+    }
+  }
+
+// line cap styles
+function draw9() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+  var lineCap = ['butt', 'round', 'square'];
+
+  // Draw guides
+  ctx.strokeStyle = '#09f';
+  ctx.beginPath();
+  ctx.moveTo(10, 10);
+  ctx.lineTo(140, 10);
+  ctx.moveTo(10, 140);
+  ctx.lineTo(140, 140);
+  ctx.stroke();
+
+  // Draw lines
+  ctx.strokeStyle = 'black';
+  for (var i = 0; i < lineCap.length; i++) {
+    ctx.lineWidth = 15;
+    ctx.lineCap = lineCap[i];
+    ctx.beginPath();
+    ctx.moveTo(25 + i * 50, 10);
+    ctx.lineTo(25 + i * 50, 140);
+    ctx.stroke();
+  }
+}
+
+// linejoins
+function draw10() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+  var lineJoin = ['round', 'bevel', 'miter'];
+  ctx.lineWidth = 10;
+  for (var i = 0; i < lineJoin.length; i++) {
+    ctx.lineJoin = lineJoin[i];
+    ctx.beginPath();
+    ctx.moveTo(-5, 5 + i * 40);
+    ctx.lineTo(35, 45 + i * 40);
+    ctx.lineTo(75, 5 + i * 40);
+    ctx.lineTo(115, 45 + i * 40);
+    ctx.lineTo(155, 5 + i * 40);
+    ctx.stroke();
+  }
+}
+
+// shadow, fillText
+function draw11() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  ctx.shadowBlur = 2;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+
+  ctx.font = '20px Times New Roman';
+  ctx.fillStyle = 'Black';
+  ctx.fillText('Sample String', 5, 30);
+}
+
+// image
+function draw12() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+  var img = new Image();   // Create new img element
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, 50, 50);
+    ctx.beginPath();
+    ctx.moveTo(30, 96);
+    ctx.lineTo(70, 66);
+    ctx.lineTo(103, 76);
+    ctx.lineTo(170, 15);
+    ctx.stroke();
+  };
+  img.src = 'data:image/gif;base64,R0lGODlhCwALAIAAAAAA3pn/ZiH5BAEAAAEALAAAAAALAAsAAAIUhA+hkcuO4lmNVindo7qyrIXiGBYAOw==';
+}
+
+// save() and restore()
+function draw13() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  ctx.fillRect(0, 0, 150, 150);   // Draw a rectangle with default settings
+  ctx.save();                  // Save the default state
+
+  ctx.fillStyle = '#09F';      // Make changes to the settings
+  ctx.fillRect(15, 15, 120, 120); // Draw a rectangle with new settings
+
+  ctx.save();                  // Save the current state
+  ctx.fillStyle = '#FFF';      // Make changes to the settings
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(30, 30, 90, 90);   // Draw a rectangle with new settings
+
+  ctx.restore();               // Restore previous state
+  ctx.fillRect(45, 45, 60, 60);   // Draw a rectangle with restored settings
+
+  ctx.restore();               // Restore original state
+  ctx.fillRect(60, 60, 30, 30);   // Draw a rectangle with restored settings
+}
+
+// translate
+function draw14() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      ctx.save();
+      ctx.fillStyle = 'rgb(' + (51 * i) + ', ' + (255 - 51 * i) + ', 255)';
+      ctx.translate(10 + j * 50, 10 + i * 50);
+      ctx.fillRect(0, 0, 25, 25);
+      ctx.restore();
+    }
+  }
+}
+
+// rotate
+function draw15() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  // left rectangles, rotate from canvas origin
+  ctx.save();
+  // blue rect
+  ctx.fillStyle = '#0095DD';
+  ctx.fillRect(30, 30, 100, 100);
+  ctx.rotate((Math.PI / 180) * 25);
+  // grey rect
+  ctx.fillStyle = '#4D4E53';
+  ctx.fillRect(30, 30, 100, 100);
+  ctx.restore();
+
+  // right rectangles, rotate from rectangle center
+  // draw blue rect
+  ctx.fillStyle = '#0095DD';
+  ctx.fillRect(150, 30, 100, 100);
+
+  ctx.translate(200, 80); // translate to rectangle center
+                          // x = x + 0.5 * width
+                          // y = y + 0.5 * height
+  ctx.rotate((Math.PI / 180) * 25); // rotate
+  ctx.translate(-200, -80); // translate back
+
+  // draw grey rect
+  ctx.fillStyle = '#4D4E53';
+  ctx.fillRect(150, 30, 100, 100);
+}
+
+// scale
+function draw16() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  // draw a simple rectangle, but scale it.
+  ctx.save();
+  ctx.scale(10, 3);
+  ctx.fillRect(1, 10, 10, 10);
+  ctx.restore();
+
+  // mirror horizontally
+  ctx.scale(-1, 1);
+  ctx.font = '48px serif';
+  ctx.fillText('MDN', -135, 120);
+}
+
+// transformation matrix
+function draw17() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  var sin = Math.sin(Math.PI / 6);
+  var cos = Math.cos(Math.PI / 6);
+  ctx.translate(100, 100);
+  var c = 0;
+  for (var i = 0; i <= 12; i++) {
+    c = Math.floor(255 / 12 * i);
+    ctx.fillStyle = 'rgb(' + c + ', ' + c + ', ' + c + ')';
+    ctx.fillRect(0, 0, 100, 10);
+    ctx.transform(cos, sin, -sin, cos, 0, 0);
+  }
+
+  ctx.setTransform(-1, 0, 0, 1, 100, 100);
+  ctx.fillStyle = 'rgba(255, 128, 255, 0.5)';
+  ctx.fillRect(0, 50, 100, 100);
+}
+
+// clipping
+function draw18() {
+
+  function drawStar(ctx, r) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    for (var i = 0; i < 9; i++) {
+      ctx.rotate(Math.PI / 5);
+      if (i % 2 === 0) {
+        ctx.lineTo((r / 0.525731) * 0.200811, 0);
+      } else {
+        ctx.lineTo(r, 0);
+      }
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  var ctx = document.getElementById('canvas').getContext('2d');
+  ctx.fillRect(0, 0, 150, 150);
+  ctx.translate(75, 75);
+
+  // Create a circular clipping path
+  ctx.beginPath();
+  ctx.arc(0, 0, 60, 0, Math.PI * 2, true);
+  ctx.clip();
+
+  // draw background
+  var lingrad = ctx.createLinearGradient(0, -75, 0, 75);
+  lingrad.addColorStop(0, '#232256');
+  lingrad.addColorStop(1, '#143778');
+
+  ctx.fillStyle = lingrad;
+  ctx.fillRect(-75, -75, 150, 150);
+
+  // draw stars
+  for (var j = 1; j < 50; j++) {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.translate(75 - Math.floor(Math.random() * 150),
+                  75 - Math.floor(Math.random() * 150));
+    drawStar(ctx, Math.floor(Math.random() * 4) + 2);
+    ctx.restore();
+  }
+
+}
+
+
+    </script>
+  </head>
+  <body onload="draw14();">
+    <canvas id="canvas" width="300" height="200">fallback content here...</canvas>
+  </body>
+</html>

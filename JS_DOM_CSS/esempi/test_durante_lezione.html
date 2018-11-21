@@ -1,0 +1,54 @@
+<html>
+<head>
+<style>
+#generatore {
+  border: 2px solid black;
+}
+
+.ball {
+  border-radius: 25px;
+  width: 50px;
+  height: 50px;
+  max-width: 50px;
+  max-height: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  position: absolute;
+}
+</style>
+<script>
+var balls=[];
+function ball() {
+  var mydiv = document.createElement("div");
+  mydiv.setAttribute("class", "ball");
+  mydiv.style.background = "rgba(" + Math.random() * 255 + ", " + Math.random() * 255 + ", " + Math.random() * 255 + ", 0.5)";
+  var generatore = document.getElementById("generatore");
+  generatore.appendChild(mydiv);
+  var x = Math.random() * 300;
+  var y = Math.random() * 300;
+  var dx = Math.random() * 20 - 10;
+  var dy = Math.random() * 20 - 10;
+  function moveme() {
+    if (x<0 || x > 300)
+        dx *= -1;
+    if (y<0 || y > 300)
+        dy *= -1;
+    dx *= 0.99;
+    dy *= 0.99;
+    dy += 0.1;
+    x += dx;
+    y += dy;
+    mydiv.style.top = y;
+    mydiv.style.left = x;
+  }
+  var mytimer = setInterval(moveme, 25);
+}
+function createBall() {
+  balls.push(new ball());
+}
+</script>
+</head>
+<body>
+<div id="generatore" onclick="createBall();"> clicca qui per generare palline</div>
+</body>
+</html>
