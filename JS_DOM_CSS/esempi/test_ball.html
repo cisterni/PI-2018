@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>My JS+DOM+CSS experiment</title>
+    <style>
+      .ball {
+        background: black;
+        border-radius: 25px;
+        width: 50px;
+        height: 50px;
+        max-width: 50px;
+        max-height: 50px;
+      }
+    </style>
+    <script>
+    var balls = [];
+    function ball() {
+      var mydiv = document.createElement("div");
+      //mydiv.innerHTML = "&nbsp;";
+      mydiv.setAttribute("class", "ball");
+      mydiv.style.position = "absolute";
+      mydiv.style.background = "rgba("+Math.random()*255+", "+Math.random()*255+", "+Math.random()*255+", 0.5)"
+      document.getElementById("container").appendChild(mydiv);
+      var dx = Math.random() * 20 - 10;
+      var dy = Math.random() * 20 - 10;
+      var x = Math.random() * 200;
+      var y = Math.random() * 200;
+      this.moveit = function() {
+        if (x<0 || x>400)
+          dx *= -1;
+        if (y<0 || y>300)
+          dy *= -1;
+        dy *= 0.99;
+        dy += 0.2;
+        dx *= 0.99;
+        x+=dx;
+        y+=dy;
+        mydiv.style.left = x + "px";
+        mydiv.style.top = y + "px";
+      }
+      var timer = setInterval(this.moveit, 25);
+    }
+    </script>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+    <p>This is my first JS+DOM+CSS example</p>
+    <div id="container" onclick="balls.push(new ball());"> click here to create balls!</div>
+  </body>
+</html>
