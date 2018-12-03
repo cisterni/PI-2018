@@ -13,7 +13,7 @@ type MovingBox(r:Rectangle) =
     with get () = box.X
     and set(v) = box <- Rectangle(v, box.Y, box.Width, box.Height)
   member this.Y
-    with get () = box.X
+    with get () = box.Y
     and set(v) = box <- Rectangle(box.X, v, box.Width, box.Height)
   member this.Location
     with get() = Point(box.X, box.Y)
