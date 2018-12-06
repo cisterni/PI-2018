@@ -51,7 +51,13 @@ type WVMatrix () =
   
   let mutable pos = PointF()
 
+  let mutable parent : UserControl option = None
+
   member this.WV = wv
+
+  member this.Parent
+    with get() = parent
+    and set(v) = parent <- v
 
   abstract OnPaint : PaintEventArgs -> unit
   default this.OnPaint (e) = ()
@@ -59,9 +65,16 @@ type WVMatrix () =
   abstract OnMouseDown : MouseEventArgs -> unit
   default this.OnMouseDown (e) = ()
 
-  member this.Invalidate() =
-    ()
+  abstract OnMouseUp : MouseEventArgs -> unit
+  default this.OnMouseUp (e) = ()
 
+  abstract OnMouseMove : MouseEventArgs -> unit
+  default this.OnMouseMove (e) = ()
+
+  member this.Invalidate() =
+    match parent with
+    | Some p -> p.Invalidate()
+    | None -> ()
   member this.HitTest(p:Point) =
     let pt = wv.TransformPointV(PointF(single p.X, single p.Y))
     let boundingbox = RectangleF(0.f, 0.f, sz.Width, sz.Height)
@@ -81,6 +94,10 @@ type WVMatrix () =
       wv.TranslateV(-pos.X, -pos.Y)
       this.Invalidate()
 
+  member this.PositionInt with get() = Point(int pos.X, int pos.Y)
+
+  member this.ClientSizeInt with get() = Size(int sz.Width, int sz.Height)
+
 
   member this.Left = pos.X
   
@@ -89,12 +106,16 @@ type WVMatrix () =
   member this.Width = sz.Width
   member this.Height = sz.Height
 
-
-
-type LWCContainer() =
+type LWCContainer() as this =
   inherit UserControl()
 
-  let controls = ResizeArray<LWCControl>()
+  let controls = System.Collections.ObjectModel.ObservableCollection<LWCControl>()
+
+  do 
+    controls.CollectionChanged.Add(fun e ->
+      for i in e.NewItems do
+        (i :?> LWCControl).Parent <- Some(this :> UserControl)
+    )
 
   member this.LWControls with get() = controls
 
@@ -102,17 +123,43 @@ type LWCContainer() =
     let oc =
       controls |> Seq.tryFindBack(fun c -> c.HitTest(e.Location))
     match oc with
-    | Some c -> 
-      printfn "Clicked"
-      c.OnMouseDown(e)
+    | Some c ->
+      let p = c.WV.TransformPointV(PointF(single e.X, single e.Y))
+      let evt = new MouseEventArgs(e.Button, e.Clicks, int p.X, int p.Y, e.Delta)
+      c.OnMouseDown(evt)
+    | None -> () 
+
+  override this.OnMouseUp (e) =
+    let oc =
+      controls |> Seq.tryFindBack(fun c -> c.HitTest(e.Location))
+    match oc with
+    | Some c ->
+      let p = c.WV.TransformPointV(PointF(single e.X, single e.Y))
+      let evt = new MouseEventArgs(e.Button, e.Clicks, int p.X, int p.Y, e.Delta)
+      c.OnMouseUp(evt)
+    | None -> () 
+
+  override this.OnMouseMove (e) =
+    let oc =
+      controls |> Seq.tryFindBack(fun c -> c.HitTest(e.Location))
+    match oc with
+    | Some c ->
+      let p = c.WV.TransformPointV(PointF(single e.X, single e.Y))
+      let evt = new MouseEventArgs(e.Button, e.Clicks, int p.X, int p.Y, e.Delta)
+      c.OnMouseMove(evt)
     | None -> () 
 
   override this.OnPaint(e) =
     controls 
     |> Seq.iter(fun c ->
       let bkg = e.Graphics.Save()
+
+      // esercizio: impostare il rettangolo in client space
+      let evt = new PaintEventArgs(e.Graphics, Rectangle(c.PositionInt, c.ClientSizeInt))
+      //bug: non supporta la rotazione
+      e.Graphics.SetClip(new RectangleF(c.Position, c.ClientSize))
       e.Graphics.Transform <- c.WV.WV
-      c.OnPaint(e)
+      c.OnPaint(evt)
       e.Graphics.Restore(bkg)
     )
 
@@ -123,6 +170,10 @@ type LWButton() =
   override this.OnPaint(e) =
     let g = e.Graphics
     g.FillRectangle(Brushes.Red, 0.f, 0.f, this.Width, this.Height)
+    g.DrawLine(Pens.Blue, 0.f, 0.f, 2.f*this.Width, 2.f*this.Height)
+  
+  override this.OnMouseDown(e) =
+    printfn "%A" e.Location
 
 // Test
 let btn = new LWButton(Position=PointF(20.f, 10.f))
