@@ -27,8 +27,8 @@ type MouseTest() as this =
   inherit UserControl()
 
   do
-//    this.SetStyle(ControlStyles.AllPaintingInWmPaint ||| ControlStyles.OptimizedDoubleBuffer, true)
-    this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true)
+    this.SetStyle(ControlStyles.AllPaintingInWmPaint ||| ControlStyles.OptimizedDoubleBuffer, true)
+    //this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true)
 
   let boxes = ResizeArray<MovingBox>()
   let mutable box = Rectangle(50, 50, 100, 100)
